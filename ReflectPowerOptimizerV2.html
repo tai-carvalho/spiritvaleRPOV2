@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflect Power Optimizer</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-success: #10b981;
+            
+            /* Stat Colors */
+            --color-atk: #f87171;
+            --color-def: #60a5fa;
+            --color-vit: #c084fc;
+            --color-defpct: #34d399;
+            --color-flatdef: #fb923c;
+            --color-reflect: #e879f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #38bdf8, #bc6ff1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Tool Section (Reverse DEF Calculator) */
+        .tool-box {
+            background: #131c2e;
+            border: 1px dashed #475569;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tool-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tool-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .tool-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .tool-field label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .tool-field input {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 0.4rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .tool-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        .tool-result {
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+
+        .tool-result strong {
+            color: var(--accent-success);
+        }
+
+        .btn-apply {
+            background: var(--accent-success);
+            color: #fff;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-apply:hover {
+            opacity: 0.9;
+        }
+
+        /* Control Panels */
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-reset {
+            background: #334155;
+            color: var(--text-main);
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: #475569;
+        }
+
+        .stat-control-group {
+            background: #151f32;
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--stat-color, #fff);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .control-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .control-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .inputs-flex {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--stat-color, #fff);
+            cursor: pointer;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #fff;
+            padding: 0.3rem;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Results Display Card */
+        .results-sticky {
+            position: sticky;
+            top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .display-card {
+            background: #151f32;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .display-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(to right, var(--accent), var(--accent-success));
+        }
+
+        .power-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .power-val-box {
+            padding: 0.5rem;
+        }
+
+        .power-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .power-num {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .power-num.new { color: var(--accent-success); }
+
+        .stat-badge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            background: #1e293b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .badge-item span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .badge-item strong {
+            color: #fff;
+        }
+
+        /* Dynamic Graph Scaling */
+        .chart-container {
+            background: #151f32;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-row {
+            margin-bottom: 1rem;
+        }
+
+        .chart-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .chart-row-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .chart-bar-wrapper {
+            background: #1e293b;
+            border-radius: 9999px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chart-bar {
+            height: 100%;
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s;
+            background-color: var(--bar-color, #fff);
+        }
+        
+        .highlight-best {
+            position: relative;
+        }
+        .highlight-best::after {
+            content: '★';
+            position: absolute;
+            right: -20px;
+            top: -2px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: var(--accent-success);
+            background: rgba(16, 185, 129, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Reflect Power Calculator</h1>
+        <p>Formula: (LV + CalculatedDEF/2 + FlatDEF/2 + ATK/2) * 4 * ReflectDamage%</p>
+    </header>
+
+    <div class="tool-box">
+        <div class="tool-title">
+            <span>⚙️ Optional: Extrapolate Base DEF from In-Game Calculated Stats</span>
+        </div>
+        <div class="tool-inputs">
+            <div class="tool-field">
+                <label>In-Game Total DEF</label>
+                <input type="number" id="calc-total-def" placeholder="e.g. 453" oninput="extractBaseDef()">
+            </div>
+            <div class="tool-field">
+                <label>Current VIT</label>
+                <input type="number" id="calc-vit" placeholder="e.g. 189" oninput="extractBaseDef()">
+            </div>
+            <div class="tool-field">
+                <label>Current Def %</label>
+                <input type="number" id="calc-defpct" placeholder="e.g. 71" oninput="extractBaseDef()">
+            </div>
+        </div>
+        <div class="tool-action-row">
+            <span class="tool-result">Identified Base DEF: <strong id="extracted-base-val">0.00</strong></span>
+            <button class="btn-apply" onclick="applyExtractedDef()">Apply to Calculator ↓</button>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <div>
+            <div class="panel-title">
+                <span>Configure Character Stats</span>
+                <button class="btn-reset" onclick="resetInputs()">Clear All Stats</button>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: #f1f5f9">
+                <div class="control-header">
+                    <span class="control-label" style="color: #cbd5e1">Level (LV)</span>
+                    <span class="control-meta">Max Cap: 150</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-lv" min="0" max="150" value="0" oninput="syncInput('lv', 'slide')">
+                    <input type="number" id="num-lv" value="0" oninput="syncInput('lv', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-atk)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-atk)">Base ATK</span>
+                    <span class="control-meta">Formula weight: ATK / 2</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-atk" min="0" max="2000" value="0" oninput="syncInput('atk', 'slide')">
+                    <input type="number" id="num-atk" value="0" oninput="syncInput('atk', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-def)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-def)">Base DEF</span>
+                    <span class="control-meta">Before VIT and Def% scaling multipliers</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-def" min="0" max="2000" value="0" oninput="syncInput('def', 'slide')">
+                    <input type="number" id="num-def" value="0" oninput="syncInput('def', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-vit)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-vit)">VIT Stat</span>
+                    <span class="control-meta">Adds +0.1% Def Multiplier per point</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-vit" min="0" max="500" value="0" oninput="syncInput('vit', 'slide')">
+                    <input type="number" id="num-vit" value="0" oninput="syncInput('vit', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-defpct)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-defpct)">Def % Modifier</span>
+                    <span class="control-meta">Direct percentage multiplier to Base DEF</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-defpct" min="0" max="300" value="0" oninput="syncInput('defpct', 'slide')">
+                    <input type="number" id="num-defpct" value="0" oninput="syncInput('defpct', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-flatdef)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-flatdef)">Flat DEF</span>
+                    <span class="control-meta">Formula weight: FlatDEF / 2</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-flatdef" min="0" max="2000" value="0" oninput="syncInput('flatdef', 'slide')">
+                    <input type="number" id="num-flatdef" value="0" oninput="syncInput('flatdef', 'num')">
+                </div>
+            </div>
+
+            <div class="stat-control-group" style="--stat-color: var(--color-reflect)">
+                <div class="control-header">
+                    <span class="control-label" style="color: var(--color-reflect)">Reflect Damage %</span>
+                    <span class="control-meta">Final global scalar bucket multiplier</span>
+                </div>
+                <div class="inputs-flex">
+                    <input type="range" id="slide-reflect" min="0" max="500" value="0" oninput="syncInput('reflect', 'slide')">
+                    <input type="number" id="num-reflect" value="0" oninput="syncInput('reflect', 'num')">
+                </div>
+            </div>
+        </div>
+
+        <div class="results-sticky">
+            <div class="display-card">
+                <div class="power-grid">
+                    <div class="power-val-box">
+                        <div class="power-label">Calculated Reflect Power</div>
+                        <div class="power-num new" id="new-power">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-badge-grid">
+                    <div class="badge-item">
+                        <span>Total DEF</span>
+                        <strong id="badge-def">0.0</strong>
+                    </div>
+                    <div class="badge-item">
+                        <span>Total ATK</span>
+                        <strong id="badge-atk">0</strong>
+                    </div>
+                    <div class="badge-item">
+                        <span>Reflect Multiplier</span>
+                        <strong id="badge-reflect">0%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">
+                    <span>Marginal Gain Profile (Opportunity Cost)</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Damage added per +1 point change</span>
+                </div>
+
+                <div class="chart-row" id="row-atk">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-atk); font-weight: 500;">+1 ATK</span>
+                        <span id="gain-atk" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-atk" style="--bar-color: var(--color-atk)"></div>
+                    </div>
+                </div>
+
+                <div class="chart-row" id="row-def">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-def); font-weight: 500;">+1 Base DEF</span>
+                        <span id="gain-def" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-def" style="--bar-color: var(--color-def)"></div>
+                    </div>
+                </div>
+
+                <div class="chart-row" id="row-vit">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-vit); font-weight: 500;">+1 VIT</span>
+                        <span id="gain-vit" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-vit" style="--bar-color: var(--color-vit)"></div>
+                    </div>
+                </div>
+
+                <div class="chart-row" id="row-defpct">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-defpct); font-weight: 500;">+1% Def%</span>
+                        <span id="gain-defpct" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-defpct" style="--bar-color: var(--color-defpct)"></div>
+                    </div>
+                </div>
+
+                <div class="chart-row" id="row-flatdef">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-flatdef); font-weight: 500;">+1 Flat DEF</span>
+                        <span id="gain-flatdef" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-flatdef" style="--bar-color: var(--color-flatdef)"></div>
+                    </div>
+                </div>
+
+                <div class="chart-row" id="row-reflect">
+                    <div class="chart-row-labels">
+                        <span style="color: var(--color-reflect); font-weight: 500;">+1% Reflect Dmg</span>
+                        <span id="gain-reflect" style="font-weight: 600;">0.00</span>
+                    </div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" id="bar-reflect" style="--bar-color: var(--color-reflect)"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globallyExtrapolatedBaseDef = 0;
+
+    // Helper logic to backtrack Base Def from game output
+    function extractBaseDef() {
+        const totalDef = parseFloat(document.getElementById('calc-total-def').value) || 0;
+        const vit = parseFloat(document.getElementById('calc-vit').value) || 0;
+        const defPct = parseFloat(document.getElementById('calc-defpct').value) || 0;
+
+        const multiplier = 1 + (vit / 1000) + (defPct / 100);
+        
+        if(multiplier > 0 && totalDef > 0) {
+            globallyExtrapolatedBaseDef = totalDef / multiplier;
+            document.getElementById('extracted-base-val').innerText = globallyExtrapolatedBaseDef.toFixed(2);
+        } else {
+            globallyExtrapolatedBaseDef = 0;
+            document.getElementById('extracted-base-val').innerText = "0.00";
+        }
+    }
+
+    // Direct binding helper to map reverse-engineered stats into active inputs
+    function applyExtractedDef() {
+        if(globallyExtrapolatedBaseDef > 0) {
+            document.getElementById('num-def').value = Math.round(globallyExtrapolatedBaseDef);
+            document.getElementById('slide-def').value = Math.round(globallyExtrapolatedBaseDef);
+            
+            // Sync accompanying multipliers to make the main tracking exact
+            const vitVal = parseFloat(document.getElementById('calc-vit').value) || 0;
+            const defPctVal = parseFloat(document.getElementById('calc-defpct').value) || 0;
+            
+            document.getElementById('num-vit').value = vitVal;
+            document.getElementById('slide-vit').value = vitVal;
+            document.getElementById('num-defpct').value = defPctVal;
+            document.getElementById('slide-defpct').value = defPctVal;
+            
+            calculateAll();
+        }
+    }
+
+    function syncInput(stat, type) {
+        const slide = document.getElementById(`slide-${stat}`);
+        const num = document.getElementById(`num-${stat}`);
+        
+        if (type === 'slide') {
+            num.value = slide.value;
+        } else {
+            if (stat === 'lv' && parseInt(num.value) > 150) num.value = 150;
+            slide.value = num.value;
+        }
+        calculateAll();
+    }
+
+    function resetInputs() {
+        const stats = ['lv', 'atk', 'def', 'vit', 'defpct', 'flatdef', 'reflect'];
+        stats.forEach(stat => {
+            document.getElementById(`slide-${stat}`).value = 0;
+            document.getElementById(`num-${stat}`).value = 0;
+        });
+        
+        document.getElementById('calc-total-def').value = "";
+        document.getElementById('calc-vit').value = "";
+        document.getElementById('calc-defpct').value = "";
+        document.getElementById('extracted-base-val').innerText = "0.00";
+        globallyExtrapolatedBaseDef = 0;
+
+        calculateAll();
+    }
+
+    // Dynamic Central Formula Computation Block
+    function runFormula(lv, atk, baseDEF, vit, defPct, flatDEF, reflectPct) {
+        // DEF * (1 + VIT/1000 + Def%)
+        const totalDEF = baseDEF * (1 + (vit / 1000) + (defPct / 100));
+        
+        // (LV + DEF/2 + FlatDEF/2 + ATK/2) * 4 * ReflectDamage%
+        const reflectPower = (lv + (totalDEF / 2) + (flatDEF / 2) + (atk / 2)) * 4 * (reflectPct / 100);
+        
+        return {
+            reflectPower: reflectPower,
+            totalDEF: totalDEF
+        };
+    }
+
+    function calculateAll() {
+        // Fetch raw state input contexts
+        const lv = parseFloat(document.getElementById('num-lv').value) || 0;
+        const atk = parseFloat(document.getElementById('num-atk').value) || 0;
+        const def = parseFloat(document.getElementById('num-def').value) || 0;
+        const vit = parseFloat(document.getElementById('num-vit').value) || 0;
+        const defpct = parseFloat(document.getElementById('num-defpct').value) || 0;
+        const flatdef = parseFloat(document.getElementById('num-flatdef').value) || 0;
+        const reflect = parseFloat(document.getElementById('num-reflect').value) || 0;
+
+        // Base current power calculation execution
+        const current = runFormula(lv, atk, def, vit, defpct, flatdef, reflect);
+        
+        // Output fields updates
+        document.getElementById('new-power').innerText = Math.round(current.reflectPower).toLocaleString();
+        document.getElementById('badge-def').innerText = current.totalDEF.toFixed(1);
+        document.getElementById('badge-atk').innerText = atk;
+        document.getElementById('badge-reflect').innerText = reflect + '%';
+
+        // Calculate marginal difference outputs (+1 points tracking checks)
+        const currentPower = current.reflectPower;
+        
+        const gains = {
+            atk: runFormula(lv, atk + 1, def, vit, defpct, flatdef, reflect).reflectPower - currentPower,
+            def: runFormula(lv, atk, def + 1, vit, defpct, flatdef, reflect).reflectPower - currentPower,
+            vit: runFormula(lv, atk, def, vit + 1, defpct, flatdef, reflect).reflectPower - currentPower,
+            defpct: runFormula(lv, atk, def, vit, defpct + 1, flatdef, reflect).reflectPower - currentPower,
+            flatdef: runFormula(lv, atk, def, vit, defpct, flatdef + 1, reflect).reflectPower - currentPower,
+            reflect: runFormula(lv, atk, def, vit, defpct, flatdef, reflect + 1).reflectPower - currentPower
+        };
+
+        const maxGain = Math.max(...Object.values(gains));
+
+        // Render dynamic bar updates and structural recommendations classes
+        Object.keys(gains).forEach(stat => {
+            const gainValue = gains[stat];
+            document.getElementById(`gain-${stat}`).innerText = `+${gainValue.toFixed(2)}`;
+            
+            const pct = (maxGain > 0 && currentPower > 0) ? (gainValue / maxGain) * 100 : 0;
+            document.getElementById(`bar-${stat}`).style.width = `${pct}%`;
+
+            const labelRow = document.getElementById(`row-${stat}`);
+            if (gainValue === maxGain && maxGain > 0 && currentPower > 0) {
+                labelRow.classList.add('highlight-best');
+            } else {
+                labelRow.classList.remove('highlight-best');
+            }
+        });
+    }
+
+    // Default initialization execution block frame loop context trigger
+    calculateAll();
+</script>
+
+</body>
+</html>
